@@ -205,14 +205,14 @@ dominance_fig = create_dominance_figure()
 app.layout = html.Div(
     style={
         "fontFamily": "Segoe UI, sans-serif", "backgroundColor": "#121212", "color": "#eee",
-        "height": "100vh", "display": "flex", "flexDirection": "row", "overflow": "hidden"
+        "height": "100vh", "width": "100vw", "display": "flex", "flexDirection": "row", "overflow": "hidden"
     },
     children=[
         # LEFT PANEL: Context (40%)
         html.Div(
-            style={"width": "40%", "height": "100%", "borderRight": "1px solid #333", "padding": "10px", "display": "flex", "flexDirection": "column"},
+            style={"width": "40%", "height": "100%", "borderRight": "1px solid #333", "padding": "10px", "display": "flex", "flexDirection": "column", "boxSizing": "border-box"},
             children=[
-                html.H3("Historical Context", style={"margin": "0 0 10px 0", "textAlign": "center", "color": "#aaa"}),
+                html.H3("Historical Context", style={"margin": "10px 0 10px 0", "textAlign": "center", "color": "#aaa"}),
                 dcc.Graph(figure=dominance_fig, style={"flex": "1"}, config={"displayModeBar": False})
             ]
         ),
@@ -331,8 +331,8 @@ def update_chart(race_id):
         yaxis=dict(autorange="reversed", title="Position", fixedrange=True, range=[22, 0]), 
         xaxis=dict(title="Lap", fixedrange=True, range=[1, last_lap]),
         hovermode="x unified",
-        margin=dict(t=40, b=40, l=40, r=20),
-        legend=dict(orientation="h", y=-0.15),
+        margin=dict(t=40, b=160, l=40, r=20), # Maximized bottom margin
+        legend=dict(orientation="h", y=-0.5, x=0.5, xanchor="center"), # Pushed way down
         
         updatemenus=[dict(
             type="buttons",
