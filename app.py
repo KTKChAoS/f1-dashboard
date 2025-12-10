@@ -290,27 +290,79 @@ def update_chart(race_id):
     winner_id = final_pos.iloc[0]["driverId"] if not final_pos.empty else None
     
     race_info = races_meta[races_meta["raceId"] == race_id].iloc[0]
-    
+    driver_ids = df_race["driverId"].unique()
+
+    # -- 1. Initial Data (FULL RACE) --
     fig = go.Figure()
-    for did in df_race["driverId"].unique():
+    for did in driver_ids:
         d = df_race[df_race["driverId"] == did]
         is_winner = (did == winner_id)
-        # Simplify traces for performance
+        
         fig.add_trace(go.Scatter(
-            x=d["lap"], y=d["position"], mode="lines", name=d["label"].iloc[0],
+            x=d["lap"], y=d["position"], # Full data
+            mode="lines", 
+            name=d["label"].iloc[0],
             line=dict(width=3 if is_winner else 1, color="#FFF" if is_winner else None),
             opacity=1.0 if is_winner else 0.4,
             hovertemplate=f"<b>{d['label'].iloc[0]}</b><br>L%{{x}} P%{{y}}<extra></extra>"
         ))
 
+    # -- 2. Frames (All Laps 1..Last) --
+    frames = []
+    
+    # Create valid frame names list for the Play button
+    frame_names = [str(l) for l in range(1, last_lap + 1)]
+    
+    for l in range(1, last_lap + 1):
+        frame_data = []
+        for did in driver_ids:
+            d = df_race[df_race["driverId"] == did]
+            d_lap = d[d["lap"] <= l]
+            frame_data.append(go.Scatter(x=d_lap["lap"], y=d_lap["position"]))
+        
+        frames.append(go.Frame(data=frame_data, name=str(l)))
+    
+    fig.frames = frames
+
+    # -- 3. Animation Controls --
     fig.update_layout(
         title=f"{race_info['year']} {race_info['name']}",
         template="plotly_dark",
-        yaxis=dict(autorange="reversed", title="Position", fixedrange=True),
-        xaxis=dict(title="Lap", fixedrange=True),
+        yaxis=dict(autorange="reversed", title="Position", fixedrange=True, range=[22, 0]), 
+        xaxis=dict(title="Lap", fixedrange=True, range=[1, last_lap]),
         hovermode="x unified",
         margin=dict(t=40, b=40, l=40, r=20),
-        legend=dict(orientation="h", y=-0.1)
+        legend=dict(orientation="h", y=-0.15),
+        
+        updatemenus=[dict(
+            type="buttons",
+            showactive=False,
+            y=1.15, x=1.1, xanchor="right", yanchor="top",
+            pad=dict(t=0, r=10),
+            buttons=[
+                dict(
+                    label="▶", 
+                    method="animate", 
+                    # Play ALL frames from start
+                    args=[frame_names, dict(frame=dict(duration=100, redraw=False), fromcurrent=True, mode="immediate")]
+                ),
+                dict(
+                    label="⏸", 
+                    method="animate", 
+                    args=[[None], dict(frame=dict(duration=0, redraw=False), mode="immediate", transition=dict(duration=0))]
+                )
+            ]
+        )],
+        
+        sliders=[dict(
+            active=last_lap - 1, # Set slider to END
+            yanchor="top", xanchor="left",
+            currentvalue=dict(font=dict(size=15), prefix="Lap: ", visible=True, xanchor="right"),
+            transition=dict(duration=300, easing="cubic-in-out"),
+            pad=dict(b=10, t=50),
+            len=0.9, x=0.1, y=0,
+            steps=[dict(label=str(l), method="animate", args=[[str(l)], dict(mode="immediate", frame=dict(duration=100, redraw=False), transition=dict(duration=0))]) for l in range(1, last_lap + 1)]
+        )]
     )
     return fig
 
