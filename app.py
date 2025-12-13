@@ -77,6 +77,7 @@ def hex_to_rgba(hex_color, opacity):
     return hex_color
 
 # -- Data Loading --
+# Data source: https://www.kaggle.com/datasets/melissamonfared/formula-1/data
 DATA_DIR = "data"
 print("Loading data...")
 
@@ -100,7 +101,6 @@ drivers_meta = drivers[["driverId", "code", "surname"]].copy()
 drivers_meta["label"] = drivers_meta["code"].fillna(drivers_meta["surname"])
 
 # -- Generate Static Dominance Figure (Compressed for Side Panel) --
-# Short names for cleaner display in side panel
 ERA_SHORT = {
     "High-downforce NA (1987–2005)": "NA",
     "V8 frozen-engine (2006–2013)": "V8",
@@ -113,7 +113,7 @@ ERA_TIMING = {
     ERA_ORDER[0]: {"start": 1987, "end": 2005},
     ERA_ORDER[1]: {"start": 2006, "end": 2013},
     ERA_ORDER[2]: {"start": 2014, "end": 2021},
-    ERA_ORDER[3]: {"start": 2022, "end": 2024}, # Assuming 2024 is current data end
+    ERA_ORDER[3]: {"start": 2022, "end": 2024},
 }
 
 # Calculate Midpoints and Widths for Bar Charts
@@ -229,9 +229,6 @@ def create_dominance_figure(theme="Dark"):
         xaxis3=dict(title="Year", tickmode="linear", dtick=5)
     )
     return fig
-
-# Remove global creation
-# dominance_fig = create_dominance_figure()
 
 # -- Layout (Split Screen) --
 app.layout = html.Div(
@@ -379,13 +376,12 @@ def update_chart(race_id, theme):
     df_race = lap_times[lap_times["raceId"] == race_id].copy()
     
     # 2. Get Team Data for this Race (Driver -> Team)
-    # We need to filter results for just this race to get the correct constructor for that specific event
     race_results = results[results["raceId"] == race_id][["driverId", "constructorId", "positionOrder"]]
     race_results = race_results.merge(constructors_small, on="constructorId", how="left")
     
     # Merge Metadata
     df_race = df_race.merge(drivers_meta, on="driverId", how="left")
-    df_race = df_race.merge(race_results, on="driverId", how="left") # Adds 'name' (team name)
+    df_race = df_race.merge(race_results, on="driverId", how="left")
     df_race = df_race.sort_values(["driverId", "lap"])
     
     last_lap = df_race["lap"].max()
@@ -393,14 +389,6 @@ def update_chart(race_id, theme):
     winner_id = final_pos.iloc[0]["driverId"] if not final_pos.empty else None
     
     # Identify "Lead Driver" per team (Highest finisher)
-    # We join final_pos with driver-team map
-    # final_pos ALREADY has 'driverId', we need to check df_race for 'name' (team name)
-    # Actually, df_race has everything. Let's create a quick map.
-    
-    # Get distinct driver-team-position from final lap
-    final_stats = df_race[df_race["lap"] == last_lap][["driverId", "name", "position"]].sort_values("position")
-    
-    # Identify "Lead Driver" per team
     final_stats = df_race[df_race["lap"] == last_lap][["driverId", "name", "position"]].sort_values("position")
     
     best_in_team = {}
@@ -412,12 +400,9 @@ def update_chart(race_id, theme):
     race_info = races_meta[races_meta["raceId"] == race_id].iloc[0]
     
     # SORT DRIVERS BY FINAL POSITION (For Tooltip Order)
-    # race_results has 'positionOrder' (Official Classification)
-    # We merge it to ensure we loop in the correct P1 -> P20 order
     driver_sort_map = race_results.set_index("driverId")["positionOrder"].to_dict()
     
     # Get unique drivers present in LAP DATA
-    # Sort them by their official result
     driver_ids = sorted(df_race["driverId"].unique(), key=lambda x: driver_sort_map.get(x, 999))
 
     # -- 1. Initial Data (FULL RACE) --
