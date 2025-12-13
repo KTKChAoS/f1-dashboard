@@ -162,7 +162,7 @@ def create_dominance_figure(theme="Dark"):
     # Layout: 3 Rows
     fig = make_subplots(
         rows=3, cols=1,
-        subplot_titles=("Points Trajectory", "Dom. Concentration (HHI)", "Era Wins Share"),
+        subplot_titles=("<b>Points Trajectory</b>", "<b>Dom. Concentration (HHI)</b>", "<b>Era Wins Share</b>"),
         vertical_spacing=0.08,
         shared_xaxes=True, 
         specs=[[{"type": "scatter"}], [{"type": "bar"}], [{"type": "bar"}]]
@@ -240,9 +240,23 @@ app.layout = html.Div(
         "fontFamily": "Segoe UI, sans-serif", 
         "backgroundColor": "#121212", 
         "color": "#eee",
-        "height": "100vh", "width": "100vw", "display": "flex", "flexDirection": "row", "overflow": "hidden"
+        "height": "100vh", "width": "100vw", 
+        "display": "flex", "flexDirection": "column", # Main container is now COLUMN
+        "overflow": "hidden"
     },
     children=[
+        # -- 0. Overall Header --
+        html.Div(
+            style={"padding": "10px 20px", "borderBottom": "1px solid #333", "display": "flex", "alignItems": "center", "justifyContent": "center", "flexShrink": 0},
+            children=[
+                html.H1("F1 Analytics: Addressing Dataset Complexity Through Visualization", style={"margin": "0", "fontSize": "1.5rem", "textAlign": "center"})
+            ]
+        ),
+
+        # -- Content Container (Row) --
+        html.Div(
+            style={"display": "flex", "flexDirection": "row", "flex": "1", "overflow": "hidden"},
+            children=[
         # LEFT PANEL: Context (40%)
         html.Div(
             style={"width": "40%", "height": "100%", "borderRight": "1px solid #333", "padding": "10px", "display": "flex", "flexDirection": "column", "boxSizing": "border-box"},
@@ -295,7 +309,7 @@ app.layout = html.Div(
                                 html.Div([
                                     html.Label("Event", style={"fontSize": "0.8em"}),
                                     dcc.Dropdown(
-                                        id="race-dropdown", value=None, clearable=False, style={"width": "250px", "color": "#000"}
+                                        id="race-dropdown", value=None, clearable=False, style={"width": "350px", "color": "#000"}
                                     )
                                 ]),
                             ]
@@ -324,6 +338,8 @@ app.layout = html.Div(
                 )
             ]
         )
+            ]
+        )
     ]
 )
 
@@ -343,7 +359,7 @@ def update_theme(theme):
         "fontFamily": "Segoe UI, sans-serif", 
         "backgroundColor": bg_color, 
         "color": text_color,
-        "height": "100vh", "width": "100vw", "display": "flex", "flexDirection": "row", "overflow": "hidden"
+        "height": "100vh", "width": "100vw", "display": "flex", "flexDirection": "column", "overflow": "hidden"
     }
     
     fig = create_dominance_figure(theme)
