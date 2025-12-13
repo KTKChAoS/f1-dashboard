@@ -98,7 +98,7 @@ races_small = races[["raceId", "year", "date"]].copy()
 races_small["era"] = races_small["year"].apply(map_era)
 constructors_small = constructors[["constructorId", "name"]].copy()
 drivers_meta = drivers[["driverId", "code", "surname"]].copy()
-drivers_meta["label"] = drivers_meta["code"].fillna(drivers_meta["surname"])
+drivers_meta["label"] = drivers_meta["code"].replace(r"\\N", pd.NA, regex=True).fillna(drivers_meta["surname"])
 
 # -- Generate Static Dominance Figure (Compressed for Side Panel) --
 ERA_SHORT = {
@@ -226,7 +226,10 @@ def create_dominance_figure(theme="Dark"):
         margin=dict(t=120, l=40, r=40, b=50), # Increased top margin for Era Headers
         legend=dict(orientation="h", y=-0.15, x=0.5, xanchor="center"),
         font=dict(size=10, color=text_color),
-        xaxis3=dict(title="Year", tickmode="linear", dtick=5)
+        xaxis3=dict(title="Year", tickmode="linear", dtick=5),
+        yaxis=dict(title="Points"),
+        yaxis2=dict(title="HHI"),
+        yaxis3=dict(title="Wins")
     )
     return fig
 
@@ -282,7 +285,10 @@ app.layout = html.Div(
                                     html.Label("Year", style={"fontSize": "0.8em"}),
                                     dcc.Dropdown(
                                         id="year-dropdown",
-                                        options=[{"label": y, "value": y} for y in sorted(races_meta["year"].unique(), reverse=True)],
+                                        options=[
+                                            {"label": y, "value": y} 
+                                            for y in sorted(races_meta[races_meta["raceId"].isin(RACES_WITH_LAPS)]["year"].unique(), reverse=True)
+                                        ],
                                         value=2021, clearable=False, style={"width": "100px", "color": "#000"}
                                     )
                                 ]),
@@ -471,8 +477,8 @@ def update_chart(race_id, theme):
         yaxis=dict(autorange="reversed", title="Position", fixedrange=True, range=[22, 0]), 
         xaxis=dict(title="Lap", fixedrange=True, range=[1, last_lap]),
         hovermode="closest",
-        margin=dict(t=120, b=50, l=40, r=20), # Increased Top for Legend
-        legend=dict(orientation="h", y=1.15, x=0.5, xanchor="center"), # Legend at Top
+        margin=dict(t=150, b=50, l=40, r=20), # Increased Top for Legend
+        legend=dict(orientation="h", y=1.25, x=0.5, xanchor="center"), # Legend at Top
         
         updatemenus=[dict(
             type="buttons",
@@ -543,6 +549,7 @@ def update_chart(race_id, theme):
     fig_violin.update_layout(
         template=template,
         yaxis=dict(title="Lap Time (s)", showgrid=True),
+        xaxis=dict(title="Driver"),
         margin=dict(t=20, b=40, l=40, r=20),
         showlegend=False
     )
