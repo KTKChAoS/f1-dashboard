@@ -288,7 +288,7 @@ app.layout = html.Div(
             children=[
                 # Top Row: Controls + Lap Chart
                 html.Div(
-                    style={"height": "50%", "display": "flex", "flexDirection": "column"},
+                    style={"height": "60%", "display": "flex", "flexDirection": "column"},
                     children=[
                         html.H3("Race Analysis (Lap-by-Lap)", style={"margin": "0 0 5px 0", "textAlign": "center"}),
                          # Controls
@@ -316,8 +316,9 @@ app.layout = html.Div(
                         ),
                         dcc.Loading(
                             type="cube",
+                            style={"flex": "1", "display": "flex", "flexDirection": "column"},
                             children=[
-                                dcc.Graph(id="lap-chart", style={"height": "40vh"}, config={"responsive": True})
+                                dcc.Graph(id="lap-chart", style={"height": "55vh"}, config={"responsive": True})
                             ]
                         )
                     ]
@@ -325,13 +326,14 @@ app.layout = html.Div(
                 
                 # Bottom Row: Consistency
                 html.Div(
-                    style={"height": "50%", "borderTop": "1px solid #333", "paddingTop": "10px"},
+                    style={"height": "40%", "borderTop": "1px solid #333", "paddingTop": "10px", "display": "flex", "flexDirection": "column"},
                     children=[
                         html.H4("Top 5 Drivers: Lap Time Consistency", style={"margin": "0 0 5px 0", "textAlign": "center"}),
                         dcc.Loading(
                             type="cube",
+                            style={"flex": "1", "display": "flex", "flexDirection": "column"},
                             children=[
-                                dcc.Graph(id="violin-graph", style={"height": "40vh"}, config={"responsive": True})
+                                dcc.Graph(id="violin-graph", style={"height": "35vh"}, config={"responsive": True})
                             ]
                         )
                     ]
